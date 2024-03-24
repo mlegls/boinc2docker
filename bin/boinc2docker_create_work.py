@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import argparse
 import boinc_path_config
@@ -182,7 +182,8 @@ def boinc2docker_create_work(image,
 
         #extract layers to individual tar files, directly into download dir
         for layer in manifest[0]['Layers']:
-            layer_id = split(layer)[0]
+            # layer_id = split(layer)[0]
+            layer_id = layer.replace("/","-")
             layer_filename_tar = fmt("layer_{layer_id}.tar")
             layer_filename = layer_filename_tar + (".manual.gz" if not native_unzip else "")
             layer_path = dir_hier_path(layer_filename)
@@ -190,7 +191,10 @@ def boinc2docker_create_work(image,
             input_files.append((fmt("shared/image/{layer_filename}"), layer_filename, layer_flags))
             if force_reimport or (need_extract and not exists(layer_path)): 
                 if verbose: print fmt("Creating input file for layer %s..."%layer_id[:12])
-                sh("tar cvf {layer_path_tar} -C %s {layer_id}"%tmpdir())
+                cmdstr = "tar cvf %s -C %s %s" % (layer_path_tar, tmpdir(), layer)
+                # print "VARS -- " + "layer_path_tar: " + layer_path_tar + " | layer_id: " + layer_id
+                print cmdstr
+                sh(cmdstr)
                 if native_unzip:
                     sh("gzip -nfk {layer_path_tar}")
                 else:
@@ -201,7 +205,10 @@ def boinc2docker_create_work(image,
         input_files.append((fmt("shared/image/{image_filename}"), image_filename, layer_flags))
         if force_reimport or need_extract: 
             if verbose: print fmt("Creating input file for image %s..."%image_id[:12])
-            sh("tar cvf {image_path_tar} -C %s {image_id}.json manifest.json repositories"%tmpdir())
+            cmdstr = "tar cvf %s -C %s index.json manifest.json repositories" % (image_path_tar, tmpdir())
+            # print "VARS -- " + "image_path_tar: " + image_path_tar + " | image_id: " + image_id
+            print cmdstr
+            sh(cmdstr)
             if native_unzip:
                 sh("gzip -nfk {image_path_tar}")
             else:
@@ -240,6 +247,7 @@ def boinc2docker_create_work(image,
 
 
 def sh(cmd):
+    print "executing command: " + cmd
     return check_output(cmd,shell=True,stderr=STDOUT).strip()
 
 
