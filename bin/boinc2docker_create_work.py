@@ -58,7 +58,9 @@ def boinc2docker_create_work(image,
     """
 
     fmt = partial(lambda s,f: s.format(**dict(globals(),**f.f_locals)),f=currentframe())
-    sh = lambda cmd: check_output(fmt(cmd),shell=True,stderr=STDOUT).strip()
+    def sh(cmd):
+        print "executing command: " + cmd
+        return check_output(fmt(cmd),shell=True,stderr=STDOUT).strip()
     
 
     if prerun is None: prerun=""
@@ -191,10 +193,7 @@ def boinc2docker_create_work(image,
             input_files.append((fmt("shared/image/{layer_filename}"), layer_filename, layer_flags))
             if force_reimport or (need_extract and not exists(layer_path)): 
                 if verbose: print fmt("Creating input file for layer %s..."%layer_id[:12])
-                cmdstr = "tar cvf %s -C %s %s" % (layer_path_tar, tmpdir(), layer)
-                # print "VARS -- " + "layer_path_tar: " + layer_path_tar + " | layer_id: " + layer_id
-                print cmdstr
-                sh(cmdstr)
+                sh("tar cvf {layer_path_tar} -C %s {layer}"%tmpdir())
                 if native_unzip:
                     sh("gzip -nfk {layer_path_tar}")
                 else:
@@ -205,10 +204,7 @@ def boinc2docker_create_work(image,
         input_files.append((fmt("shared/image/{image_filename}"), image_filename, layer_flags))
         if force_reimport or need_extract: 
             if verbose: print fmt("Creating input file for image %s..."%image_id[:12])
-            cmdstr = "tar cvf %s -C %s index.json manifest.json repositories" % (image_path_tar, tmpdir())
-            # print "VARS -- " + "image_path_tar: " + image_path_tar + " | image_id: " + image_id
-            print cmdstr
-            sh(cmdstr)
+            sh("tar cvf {image_path_tar} -C %s index.json manifest.json repositories"%tmpdir())
             if native_unzip:
                 sh("gzip -nfk {image_path_tar}")
             else:
@@ -247,7 +243,6 @@ def boinc2docker_create_work(image,
 
 
 def sh(cmd):
-    print "executing command: " + cmd
     return check_output(cmd,shell=True,stderr=STDOUT).strip()
 
 
