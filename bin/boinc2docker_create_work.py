@@ -59,8 +59,9 @@ def boinc2docker_create_work(image,
 
     fmt = partial(lambda s,f: s.format(**dict(globals(),**f.f_locals)),f=currentframe())
     def sh(cmd):
+        cmd = fmt(cmd)
         print "executing command: " + cmd
-        return check_output(fmt(cmd),shell=True,stderr=STDOUT).strip()
+        return check_output(cmd,shell=True,stderr=STDOUT).strip()
     
 
     if prerun is None: prerun=""
