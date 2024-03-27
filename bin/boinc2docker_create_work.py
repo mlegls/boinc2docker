@@ -161,6 +161,8 @@ def boinc2docker_create_work(image,
         cat $(for f in /root/shared/image/*.tar /tmp/image/*.tar; do [ -e $f ] && echo $f; done) | tar xi -C /tmp/image/combined
         rm  /tmp/image/*.tar
         tar cf - -C /tmp/image/combined . | docker load
+        echo "FOLDER STATE --!DEBUG!--" > /dev/stderr
+        ls > /dev/stderr
         rm -rf /tmp/image
 
         echo "Prerun diagnostics..."
